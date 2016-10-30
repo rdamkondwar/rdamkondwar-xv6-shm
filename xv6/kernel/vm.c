@@ -364,3 +364,15 @@ copyout(pde_t *pgdir, uint va, void *p, uint len)
   }
   return 0;
 }
+
+#define SHM_KEY_SIZE 8
+void* shm_segment[SHM_KEY_SIZE];
+
+void
+init_shared_mem() {
+  int i;
+  for (i = 0; i < SHM_KEY_SIZE; i++) {
+    shm_segment[i] = kalloc();
+    cprintf("Init shm segment %d\n", i);
+  }
+}
