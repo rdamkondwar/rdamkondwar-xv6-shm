@@ -443,4 +443,37 @@ procdump(void)
   }
 }
 
+// Datastructure to hold shm key and its addrs
+#define SHM_KEY_SIZE 8
+#define MAX_SHM_SEG_PER_KEY 4
 
+typedef struct {
+  int key;
+  int num_pages;
+  void* shm_seg_addr[MAX_SHM_SEG_PER_KEY];
+  int pidcnt;
+} shm_seg;
+
+shm_seg shmseg[SHM_KEY_SIZE];
+
+void*
+shmgetat(int key, int num_pages) {
+  //  int i;
+
+  if (shmseg[key].pidcnt > 0) {
+    // Key already in use
+    // attach segs to proc's mem space
+    
+    shmseg[key].pidcnt++;
+  }
+
+  shmseg[key].pidcnt++;
+  //memset(shm_seg, 0, PGSIZE);
+  //key not in use
+  return NULL;
+}
+
+int
+shm_refcount(int key) {
+  return shmseg[key].pidcnt;
+}
