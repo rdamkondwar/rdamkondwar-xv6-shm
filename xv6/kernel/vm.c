@@ -366,12 +366,16 @@ copyout(pde_t *pgdir, uint va, void *p, uint len)
 }
 
 int
-attach_shm_seg(pde_t *pgdir, uint oldsz, void *shm_seg) {
-  uint newsz;
-  newsz = PGROUNDUP(oldsz);
+attach_shm_seg(pde_t *pgdir, uint newsz, void *shm_seg, int memset_flag) {
+  //  uint newsz;
+  // newsz = PGROUNDUP(oldsz);
+  if (1 == memset_flag) {
+    memset(shm_seg, 0, PGSIZE);
+  }
+
   if (mappages(pgdir, (char*)newsz, PGSIZE, PADDR(shm_seg), PTE_W|PTE_U) < 0) {
     return -1;
   }
-  newsz += PGSIZE;
-  return newsz;
+
+  return 0;
 }

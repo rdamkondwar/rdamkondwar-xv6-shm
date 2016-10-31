@@ -109,6 +109,7 @@ void            userinit(void);
 int             wait(void);
 void            wakeup(void*);
 void            yield(void);
+void            init_shmseg(void);
 
 // swtch.S
 void            swtch(struct context**, struct context*);
@@ -169,7 +170,8 @@ void            switchuvm(struct proc*);
 void            switchkvm(void);
 int             copyout(pde_t*, uint, void*, uint);
 void*           shmgetat(int, int);
-int             shm_refcount(int); 
+int             shm_refcount(int);
+int             attach_shm_seg(pde_t *, uint, void *, int);
 
 // number of elements in fixed-size array
 #define NELEM(x) (sizeof(x)/sizeof((x)[0]))

@@ -30,7 +30,7 @@ exec(char *path, char **argv)
 
   if((pgdir = setupkvm()) == 0)
     goto bad;
-
+  
   // Load program into memory.
   sz = 0;
   for(i=0, off=elf.phoff; i<elf.phnum; i++, off+=sizeof(ph)){
@@ -86,6 +86,13 @@ exec(char *path, char **argv)
   proc->sz = sz;
   proc->tf->eip = elf.entry;  // main
   proc->tf->esp = sp;
+
+  // Reset shared seg meta data
+  proc->shm_keys_idx = -1;
+  for (i=0; i < 32; i++) {
+    proc->shm_keys[i] = -1;
+  }
+  
   switchuvm(proc);
   freevm(oldpgdir);
 
