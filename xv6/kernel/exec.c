@@ -92,7 +92,11 @@ exec(char *path, char **argv)
   /* for (i=0; i < 32; i++) { */
   /*   proc->shm_keys[i] = -1; */
   /* } */
-  detatch_shm(proc);
+  if (proc->shm_keys_idx > -1) {
+    cprintf("calling detatch from exec\n");
+    detatch_shm(proc);
+  }
+
   
   switchuvm(proc);
   freevm(oldpgdir);
