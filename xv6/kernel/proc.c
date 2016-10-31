@@ -200,6 +200,8 @@ exit(void)
   iput(proc->cwd);
   proc->cwd = 0;
 
+  detatch_shm(proc);
+
   acquire(&ptable.lock);
 
   // Parent might be sleeping in wait().
@@ -580,6 +582,24 @@ clear_shm_info(struct proc *p) {
     return;
   }
   for (i = 0; i < p->shm_keys_idx; i++) {
+    p->shm_keys[i] = -1;
+  }
+  p->shm_keys_idx = -1;
+}
+
+void
+detatch_shm(struct proc *p) {
+  int i;
+  if (p->shm_keys_idx == -1) {
+    return;
+  }
+  int prev_key = -1;
+  for (i = 0; i < p->shm_keys_idx; i++) {
+    if (prev_key != p->shm_keys[i]) {
+      cprintf("Decrementing pid count for key %d to %d\n", p->shm_keys[i], p->shm_keys[i].pidcnt);
+      prev_key = p->shm_keys[i];
+      shmseg[p->shm_keys[i]].pidcnt--;
+    }
     p->shm_keys[i] = -1;
   }
   p->shm_keys_idx = -1;

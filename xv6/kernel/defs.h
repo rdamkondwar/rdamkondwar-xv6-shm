@@ -111,6 +111,7 @@ void            wakeup(void*);
 void            yield(void);
 void            init_shmseg(void);
 void            clear_shm_info(struct proc *);
+void            detatch_shm(struct proc *);
   
 // swtch.S
 void            swtch(struct context**, struct context*);

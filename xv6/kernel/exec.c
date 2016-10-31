@@ -88,10 +88,11 @@ exec(char *path, char **argv)
   proc->tf->esp = sp;
 
   // Reset shared seg meta data
-  proc->shm_keys_idx = -1;
-  for (i=0; i < 32; i++) {
-    proc->shm_keys[i] = -1;
-  }
+  /* proc->shm_keys_idx = -1; */
+  /* for (i=0; i < 32; i++) { */
+  /*   proc->shm_keys[i] = -1; */
+  /* } */
+  detatch_shm(proc);
   
   switchuvm(proc);
   freevm(oldpgdir);
