@@ -145,6 +145,24 @@ fork(void)
   np->parent = proc;
   *np->tf = *proc->tf;
 
+  //Copy shm info
+  int index = proc->shm_keys_idx;
+  int prev_key = -1;
+  if (index > -1) {
+    np->shm_keys_idx = proc->shm_keys_idx;
+    clear_shm_info(np);
+    while (index >= 0) {
+      if (proc->shm_keys[index] != -1) {
+	// np->shm_keys[index] = proc->shm_keys[index];
+	if (proc->shm_keys[index] != prev_key) {
+	  shmgetat(np, proc->shm_keys[index], 0);
+	}
+	prev_key = proc->shm_keys[index];
+      }
+      index--;
+    }
+  }
+
   // Clear %eax so that fork returns 0 in the child.
   np->tf->eax = 0;
 
@@ -472,10 +490,10 @@ init_shmseg(void) {
 }
 
 int
-search_shmkey_for_proc(int key) {
+search_shmkey_for_proc(struct proc *p, int key) {
   int i;
-  for (i = proc->shm_keys_idx; i > -1; i--) {
-    if (proc->shm_keys[i] == key) {
+  for (i = p->shm_keys_idx; i > -1; i--) {
+    if (p->shm_keys[i] == key) {
       return i;
     }
   }
@@ -499,50 +517,50 @@ search_shmkey_for_proc(int key) {
 /* } */
 
 void*
-shmgetat(int key, int num_pages) {
+shmgetat(struct proc  *p, int key, int num_pages) {
   int i;
   uint newsz;
   
   if (shmseg[key].pidcnt > 0) {
     // Key already in use
     // Check if seg is already attached
-    int index = search_shmkey_for_proc(key);
+    int index = search_shmkey_for_proc(p, key);
     if (index > -1) {
       // Found shm seg in proc's addr space
       newsz = USERTOP - PGSIZE*(index+1);
     }
     else {
       // attach segs to proc's mem space
-      for (i = 0; i < num_pages; i++) {
-	proc->shm_keys_idx++;
-	newsz = USERTOP - PGSIZE*(proc->shm_keys_idx+1);
-	attach_shm_seg(proc->pgdir, newsz, shmseg[key].shm_seg_addr[i], 0);
-	proc->shm_keys[proc->shm_keys_idx] = key;
-	shmseg[key].num_pages+=num_pages;
+      for (i = 0; i < shmseg[key].num_pages; i++) {
+	p->shm_keys_idx++;
+	newsz = USERTOP - PGSIZE*(p->shm_keys_idx+1);
+	attach_shm_seg(p->pgdir, newsz, shmseg[key].shm_seg_addr[i], 0);
+	p->shm_keys[p->shm_keys_idx] = key;
+	//shmseg[key].num_pages+=num_pages;
 	shmseg[key].pidcnt++;
-	// cprintf("Debug1: %d\n", proc->pid);
+	// cprintf("Debug1: %d\n", p->pid);
       }
     }
     return (void *)newsz;
   }
 
   // key not in use
-  // attach segs to proc's mem space
+  // attach segs to p's mem space
   for (i = 0; i < num_pages; i++) {
-    proc->shm_keys_idx++;
-    newsz = USERTOP - PGSIZE*(proc->shm_keys_idx+1);
-    attach_shm_seg(proc->pgdir, newsz, shmseg[key].shm_seg_addr[i], 1);
-    proc->shm_keys[proc->shm_keys_idx] = key;
-    shmseg[key].num_pages+=num_pages;
+    p->shm_keys_idx++;
+    newsz = USERTOP - PGSIZE*(p->shm_keys_idx+1);
+    attach_shm_seg(p->pgdir, newsz, shmseg[key].shm_seg_addr[i], 1);
+    p->shm_keys[p->shm_keys_idx] = key;
+    shmseg[key].num_pages++;
     shmseg[key].pidcnt++;
-    // cprintf("Debug2: %d\n", proc->pid);
+    // cprintf("Debug2: %d\n", p->pid);
   }
 
   return (void *)newsz;
 }
 
 uint get_virt_addr(int key) {
-  int index = search_shmkey_for_proc(key);
+  int index = search_shmkey_for_proc(proc, key);
   return USERTOP - PGSIZE*(index+1);
 }
 
@@ -553,4 +571,16 @@ shm_refcount(int key) {
     cprintf("syscall: pid %d phy_addr %x virt_addr %x\n", proc->pid, shmseg[key].shm_seg_addr[num_idx], get_virt_addr(key)); 
   }
   return shmseg[key].pidcnt;
+}
+
+void
+clear_shm_info(struct proc *p) {
+  int i;
+  if (p->shm_keys_idx == -1) {
+    return;
+  }
+  for (i = 0; i < p->shm_keys_idx; i++) {
+    p->shm_keys[i] = -1;
+  }
+  p->shm_keys_idx = -1;
 }

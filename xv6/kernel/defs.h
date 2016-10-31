@@ -110,7 +110,8 @@ int             wait(void);
 void            wakeup(void*);
 void            yield(void);
 void            init_shmseg(void);
-
+void            clear_shm_info(struct proc *);
+  
 // swtch.S
 void            swtch(struct context**, struct context*);
 
@@ -169,7 +170,7 @@ pde_t*          copyuvm(pde_t*, uint);
 void            switchuvm(struct proc*);
 void            switchkvm(void);
 int             copyout(pde_t*, uint, void*, uint);
-void*           shmgetat(int, int);
+void*           shmgetat(struct proc*, int, int);
 int             shm_refcount(int);
 int             attach_shm_seg(pde_t *, uint, void *, int);
 

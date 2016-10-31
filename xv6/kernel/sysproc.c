@@ -108,7 +108,7 @@ sys_shmgetat(void) {
   }
   
 
-  return (int)shmgetat(key, num_pages);
+  return (int)shmgetat(proc, key, num_pages);
 }
 
 int

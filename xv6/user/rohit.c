@@ -9,7 +9,12 @@ main(int argc, char *argv[])
   printf(1, "pid = %d Pid count: %d for key: %d\n", getpid(), shm_refcount(key), key);
   shmgetat(key, 1);
   int ret = fork();
+  if (ret > 0) {
+    sleep(100);
+    printf(1, "parent: pid = %d Pid count: %d for key: %d\n", getpid(), shm_refcount(key), key);
+  }
   ret = ret+1;
+  
   /* if (ret > 0) { */
   /*   shmgetat(key+1, 2); */
   /*   printf(1, "parent: pid = %d Pid count: %d for key: %d\n", getpid(), shm_refcount(key+1), key+1); */
@@ -28,7 +33,7 @@ main(int argc, char *argv[])
   // while (1) {
     printf(1, "pid = %d Pid count: %d for key: %d\n", getpid(), shm_refcount(key), key);
     //shmgetat(key, 1);
-    sleep(100);
+    //sleep(100);
     // }
   
   exit();
