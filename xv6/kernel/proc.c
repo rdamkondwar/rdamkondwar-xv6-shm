@@ -542,13 +542,12 @@ shmgetat(struct proc  *p, int key, int num_pages) {
     else {
       // attach segs to proc's mem space
       for (i = 0; i < shmseg[key].num_pages; i++) {
+	newsz = USERTOP - PGSIZE*(p->shm_keys_idx+2);
+	if (attach_shm_seg(p->pgdir, p->sz, newsz, shmseg[key].shm_seg_addr[i], 0) < 0) {
+	  return (void *)-1;
+	}
 	p->shm_keys_idx++;
-	newsz = USERTOP - PGSIZE*(p->shm_keys_idx+1);
-	attach_shm_seg(p->pgdir, newsz, shmseg[key].shm_seg_addr[i], 0);
 	p->shm_keys[p->shm_keys_idx] = key;
-	//shmseg[key].num_pages+=num_pages;
-	
-	// cprintf("Debug1: %d\n", p->pid);
       }
       shmseg[key].pidcnt++;
     }
@@ -559,9 +558,11 @@ shmgetat(struct proc  *p, int key, int num_pages) {
   // key not in use
   // attach segs to p's mem space
   for (i = 0; i < num_pages; i++) {
+    newsz = USERTOP - PGSIZE*(p->shm_keys_idx+2);
+    if (attach_shm_seg(p->pgdir, p->sz, newsz, shmseg[key].shm_seg_addr[i], 1) < 0) {
+      return (void *)-1;
+    }
     p->shm_keys_idx++;
-    newsz = USERTOP - PGSIZE*(p->shm_keys_idx+1);
-    attach_shm_seg(p->pgdir, newsz, shmseg[key].shm_seg_addr[i], 1);
     p->shm_keys[p->shm_keys_idx] = key;
     shmseg[key].num_pages++;
 
@@ -601,7 +602,6 @@ clear_shm_info(struct proc *p) {
 
 void
 detatch_shm(struct proc *p) {
-
   int i;
   if (p->shm_keys_idx == -1) {
     return;
@@ -617,4 +617,14 @@ detatch_shm(struct proc *p) {
     p->shm_keys[i] = -1;
   }
   p->shm_keys_idx = -1;
+}
+
+uint
+get_shm_start_addr(struct proc *p) {
+  int index = p->shm_keys_idx;
+  if (index == -1) {
+    return USERTOP;
+  }
+  
+  return USERTOP - PGSIZE*(index+1);
 }

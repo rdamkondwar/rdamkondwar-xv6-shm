@@ -112,7 +112,7 @@ void            yield(void);
 void            init_shmseg(void);
 void            clear_shm_info(struct proc *);
 void            detatch_shm(struct proc *);
-  
+uint            get_shm_start_addr(struct proc *);
 // swtch.S
 void            swtch(struct context**, struct context*);
 
@@ -173,7 +173,7 @@ void            switchkvm(void);
 int             copyout(pde_t*, uint, void*, uint);
 void*           shmgetat(struct proc*, int, int);
 int             shm_refcount(int);
-int             attach_shm_seg(pde_t *, uint, void *, int);
+int             attach_shm_seg(pde_t *, uint, uint, void *, int);
 
 // number of elements in fixed-size array
 #define NELEM(x) (sizeof(x)/sizeof((x)[0]))

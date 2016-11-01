@@ -231,7 +231,9 @@ allocuvm(pde_t *pgdir, uint oldsz, uint newsz)
   char *mem;
   uint a;
 
-  if(newsz > USERTOP)
+  uint end_of_heap = get_shm_start_addr(proc);
+
+  if(newsz > end_of_heap)
     return 0;
   if(newsz < oldsz)
     return oldsz;
@@ -286,7 +288,7 @@ freevm(pde_t *pgdir)
 
   if(pgdir == 0)
     panic("freevm: no pgdir");
-  deallocuvm(pgdir, USERTOP, 0);
+  deallocuvm(pgdir, proc->sz, 0);
   for(i = 0; i < NPDENTRIES; i++){
     if(pgdir[i] & PTE_P)
       kfree((char*)PTE_ADDR(pgdir[i]));
@@ -366,9 +368,12 @@ copyout(pde_t *pgdir, uint va, void *p, uint len)
 }
 
 int
-attach_shm_seg(pde_t *pgdir, uint newsz, void *shm_seg, int memset_flag) {
-  //  uint newsz;
-  // newsz = PGROUNDUP(oldsz);
+attach_shm_seg(pde_t *pgdir, uint oldsz, uint newsz, void *shm_seg, int memset_flag) {
+
+  if (newsz < oldsz) {
+    return -1;
+  }
+  
   if (1 == memset_flag) {
     memset(shm_seg, 0, PGSIZE);
   }
