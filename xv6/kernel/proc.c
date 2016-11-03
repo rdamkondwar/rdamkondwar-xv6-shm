@@ -201,7 +201,7 @@ exit(void)
   proc->cwd = 0;
 
   if (proc->shm_keys_idx > -1) {
-    cprintf("Calling detatch from exit\n");
+    // cprintf("Calling detatch from exit\n");
     detatch_shm(proc);
   }
   
@@ -529,7 +529,7 @@ void*
 shmgetat(struct proc  *p, int key, int num_pages) {
   int i;
   uint newsz;
-  cprintf("pid %d before shm_key_count %d\n", p->pid, p->shm_keys_idx);
+  // cprintf("pid %d before shm_key_count %d\n", p->pid, p->shm_keys_idx);
   
   if (shmseg[key].pidcnt > 0) {
     // Key already in use
@@ -568,7 +568,7 @@ shmgetat(struct proc  *p, int key, int num_pages) {
 
     
   }
-  cprintf("Debug2: %d\n", p->pid);
+  // cprintf("Debug2: %d\n", p->pid);
   shmseg[key].pidcnt++;
 
   return (void *)newsz;
@@ -606,11 +606,11 @@ detatch_shm(struct proc *p) {
   if (p->shm_keys_idx == -1) {
     return;
   }
-  cprintf("Detatch called %d for pid %d\n", p->shm_keys_idx ,p->pid);
+  // cprintf("Detatch called %d for pid %d\n", p->shm_keys_idx ,p->pid);
   int prev_key = -1;
   for (i = 0; i <= p->shm_keys_idx; i++) {
     if (-1 != p->shm_keys[i] && prev_key != p->shm_keys[i]) {
-      cprintf("Decrementing pid count for key %d to %d\n", p->shm_keys[i], shmseg[p->shm_keys[i]].pidcnt);
+      // cprintf("Decrementing pid count for key %d to %d\n", p->shm_keys[i], shmseg[p->shm_keys[i]].pidcnt);
       prev_key = p->shm_keys[i];
       shmseg[p->shm_keys[i]].pidcnt--;
     }
@@ -625,6 +625,6 @@ get_shm_start_addr(struct proc *p) {
   if (index == -1) {
     return USERTOP;
   }
-  
+  // cprintf("Returning shm start addr: %x\n", USERTOP - PGSIZE*(index+1));
   return USERTOP - PGSIZE*(index+1);
 }

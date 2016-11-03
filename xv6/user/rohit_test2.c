@@ -36,8 +36,8 @@ main(int argc, char *argv[])
 
   //argstr
   int fd = open(ptr, O_WRONLY|O_CREATE);
-  if (fd == -1) {
-    printf(1, "open system call failed to take a string from within a shared page\n");
+  if (fd < 0) {
+    printf(1, "%d open system call failed to take a string from within a shared page\n", fd);
     test_failed();
   }
 

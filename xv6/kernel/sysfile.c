@@ -262,8 +262,11 @@ sys_open(void)
   struct file *f;
   struct inode *ip;
 
-  if(argstr(0, &path) < 0 || argint(1, &omode) < 0)
+  if(argstr(0, &path) < 0)
     return -1;
+  if(argint(1, &omode) < 0)
+    return -1;
+  
   if(omode & O_CREATE){
     if((ip = create(path, T_FILE, 0, 0)) == 0)
       return -1;
